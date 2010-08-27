@@ -304,17 +304,20 @@ namespace OpenRA.Traits
 
 			// pick an adjacent available cell.
 			var availCells = new List<int2>();
-			var notStupidCells = new List<int2>();
+			var notStupidCells = new List<int2>(); //cells that we could enter if the mobile occupants left
 
 			for( var i = -1; i < 2; i++ )
 				for (var j = -1; j < 2; j++)
 				{
 					var p = toCell + new int2(i, j);
-					if (CanEnterCell(p))
-						availCells.Add(p);
-					else
-						if (p != nudger.Location && p != toCell)
-							notStupidCells.Add(p);
+                    if (p != self.Location)
+                    {
+                        if (CanEnterCell(p))
+                            availCells.Add(p);
+                        else
+                            if (CanEnterCell(p, null, false) && p != nudger.Location)
+                                notStupidCells.Add(p);
+                    }
 				}
 
 			var moveTo = availCells.Any() ? availCells.Random(self.World.SharedRandom) :

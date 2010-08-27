@@ -216,7 +216,9 @@ namespace OpenRA.Traits.Activities
 				if (--waitTicksRemaining >= 0)
 					return null;
 
-				mobile.RemoveInfluence();
+                hasNudged = false;
+                hasWaited = false;
+                mobile.RemoveInfluence();
 				var newPath = getPath( self, mobile ).TakeWhile(a => a != mobile.toCell).ToList();
 				mobile.AddInfluence();
 
