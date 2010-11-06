@@ -320,6 +320,7 @@ namespace OpenRA.Traits
                     }
 				}
 
+            Game.Debug("nudge: available: " + availCells.Count + ", notStupid: " + notStupidCells.Count);
 			var moveTo = availCells.Any() ? availCells.Random(self.World.SharedRandom) :
 				notStupidCells.Any() ? notStupidCells.Random(self.World.SharedRandom) : (int2?)null;
 

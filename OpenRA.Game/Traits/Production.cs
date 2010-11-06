@@ -11,6 +11,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using OpenRA.FileFormats;
+using System.Linq;
 
 namespace OpenRA.Traits
 {
@@ -23,9 +24,10 @@ namespace OpenRA.Traits
 		public virtual object Create(ActorInitializer init) { return new Production(this); }
 	}
 
-	public class Production
+	public class Production : ITick
 	{	
 		public readonly List<Pair<float2, int2>> Spawns = new List<Pair<float2, int2>>();
+        private int clearAreaWaitTime;
 		public Production(ProductionInfo info)
 		{
 			if (info.SpawnOffsets == null || info.ExitCells == null)
@@ -99,15 +101,39 @@ namespace OpenRA.Traits
 			{
 				var exit = self.Location + s.Second;
 				var spawn = self.CenterLocation + s.First;
-				if (mobile.CanEnterCell(exit,self,true))
-				{
-					DoProduction(self, newUnit, exit, spawn);
-					return true;
-				}
+                if (mobile.CanEnterCell(exit, self, true))
+                {
+                    DoProduction(self, newUnit, exit, spawn);
+                    return true;
+                }
+                else
+                {
+                    ClearSpawnArea(exit, self);
+                }
 			}
 			return false;
 		}
 
+        public void Tick(Actor self)
+        {
+            if (clearAreaWaitTime > 0) clearAreaWaitTime--;
+        }
 
-	}
+        private void ClearSpawnArea(int2 position, Actor self)
+        {
+            if (clearAreaWaitTime != 0) return;
+            clearAreaWaitTime = 40;
+            //Nudge every unit in the blocked cell and adjacent cells.
+            for (var i = -1; i < 2; i++) {
+                for (var j = -1; j < 2; j++) {
+                    var pos = position + new int2(i, j);
+                    var blockingUnits = self.World.WorldActor.Trait<UnitInfluence>().GetUnitsAt(pos);
+                    foreach (var blockingUnit in blockingUnits) {
+                        var nudgee = blockingUnit.TraitOrDefault<INudge>();
+                        if (nudgee != null) nudgee.OnNudge(blockingUnit, self);
+                    }
+                }
+            }
+        }
+    }
 }

@@ -60,7 +60,19 @@ namespace OpenRA.Traits.Activities
 			this.destination = destination;
 			this.nearEnough = nearEnough;
 		}
-		
+
+        bool debug;
+
+        public Move(int2 destination, int nearEnough, bool debug)
+            : this()
+        {
+            this.getPath = (self, mobile) => self.World.PathFinder.FindUnitPath(
+                mobile.toCell, destination, self);
+            this.destination = destination;
+            this.nearEnough = nearEnough;
+            this.debug = debug;
+        }
+
 		public Move(int2 destination, Actor ignoreBuilding)
 			: this()
 		{
@@ -105,6 +117,10 @@ namespace OpenRA.Traits.Activities
 
 		public IActivity Tick( Actor self )
 		{
+            if (debug)
+            {
+                Game.Debug("debugging move");
+            }
 			var mobile = self.Trait<Mobile>();
 
 			if( move != null )
@@ -190,6 +206,10 @@ namespace OpenRA.Traits.Activities
 
 		int2? PopPath( Actor self, Mobile mobile )
 		{
+            if (debug)
+            {
+                Game.Debug("debugging move");
+            }
 			if( path.Count == 0 ) return null;
 			var nextCell = path[ path.Count - 1 ];
 			if( !mobile.CanEnterCell( nextCell, ignoreBuilding, true ) )
